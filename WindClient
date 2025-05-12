@@ -1,0 +1,387 @@
+-- WindClient for Roblox Cheat Features (Movement Hacks Window)
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- Injection Message
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "InjectionGui"
+ScreenGui.ResetOnSpawn = false
+
+local InjectMessage = Instance.new("TextLabel")
+InjectMessage.Size = UDim2.new(0, 300, 0, 50)
+InjectMessage.Position = UDim2.new(0.5, -150, 0.5, -25)
+InjectMessage.BackgroundTransparency = 0.5
+InjectMessage.BackgroundColor3 = Color3.fromRGB(50, 0, 100) -- Purple
+InjectMessage.Text = "tema krutoy injekt"
+InjectMessage.TextColor3 = Color3.fromRGB(255, 255, 255)
+InjectMessage.TextSize = 20
+InjectMessage.Font = Enum.Font.SourceSansBold
+InjectMessage.Parent = ScreenGui
+
+wait(3)
+InjectMessage:Destroy()
+
+-- Main GUI Setup
+local MainGui = Instance.new("ScreenGui")
+MainGui.Parent = game.CoreGui
+MainGui.Name = "WindClient"
+MainGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
+MainFrame.BackgroundTransparency = 0.3
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 0, 60) -- Purple-black
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Parent = MainGui
+
+local MainUICorner = Instance.new("UICorner")
+MainUICorner.CornerRadius = UDim.new(0, 15)
+MainUICorner.Parent = MainFrame
+
+local MainTitle = Instance.new("TextLabel")
+MainTitle.Size = UDim2.new(1, 0, 0, 50)
+MainTitle.BackgroundTransparency = 1
+MainTitle.Text = "WindClient - Cheats"
+MainTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainTitle.TextSize = 20
+MainTitle.Font = Enum.Font.SourceSansBold
+MainTitle.Parent = MainFrame
+
+-- Movement Hacks GUI Setup
+local MovementFrame = Instance.new("Frame")
+MovementFrame.Size = UDim2.new(0, 300, 0, 250)
+MovementFrame.Position = UDim2.new(0.5, 150, 0.5, -125)
+MovementFrame.BackgroundTransparency = 0.3
+MovementFrame.BackgroundColor3 = Color3.fromRGB(30, 0, 60) -- Purple-black
+MovementFrame.BorderSizePixel = 0
+MovementFrame.Visible = false
+MovementFrame.Parent = MainGui
+
+local MovementUICorner = Instance.new("UICorner")
+MovementUICorner.CornerRadius = UDim.new(0, 15)
+MovementUICorner.Parent = MovementFrame
+
+local MovementTitle = Instance.new("TextLabel")
+MovementTitle.Size = UDim2.new(1, 0, 0, 50)
+MovementTitle.BackgroundTransparency = 1
+MovementTitle.Text = "Movement Hacks"
+MovementTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+MovementTitle.TextSize = 20
+MovementTitle.Font = Enum.Font.SourceSansBold
+MovementTitle.Parent = MovementFrame
+
+-- Make GUIs Draggable
+local function makeDraggable(frame)
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    frame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+makeDraggable(MainFrame)
+makeDraggable(MovementFrame)
+
+-- Button Creator Function
+local function createButton(name, position, parent, callback)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 260, 0, 40)
+    Button.Position = position
+    Button.BackgroundColor3 = Color3.fromRGB(60, 0, 120) -- Dark purple
+    Button.Text = name
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 16
+    Button.Parent = parent
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 10)
+    ButtonCorner.Parent = Button
+    Button.MouseButton1Click:Connect(callback)
+    return Button
+end
+
+-- TextBox Creator Function
+local function createTextBox(placeholder, position, parent, callback)
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(0, 260, 0, 40)
+    TextBox.Position = position
+    TextBox.BackgroundColor3 = Color3.fromRGB(60, 0, 120)
+    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextBox.TextSize = 16
+    TextBox.PlaceholderText = placeholder
+    TextBox.Text = ""
+    TextBox.Parent = parent
+    local TextBoxCorner = Instance.new("UICorner")
+    TextBoxCorner.CornerRadius = UDim.new(0, 10)
+    TextBoxCorner.Parent = TextBox
+    TextBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            callback(TextBox.Text)
+        end
+    end)
+    return TextBox
+end
+
+-- Toggle Menu (Right Ctrl)
+local isMenuOpen = false
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightControl then
+        isMenuOpen = not isMenuOpen
+        MainFrame.Visible = isMenuOpen
+        MovementFrame.Visible = isMenuOpen
+        warn("GUI Toggle: " .. (isMenuOpen and "Opened" or "Closed"))
+    end
+end)
+
+-- R + LeftClick Teleport
+local rPressed = false
+local tpEnabled = false
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.R then
+        rPressed = true
+        warn("R Key: Pressed")
+    elseif input.UserInputType == Enum.UserInputType.MouseButton1 and rPressed and tpEnabled then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hitPosition = Mouse.Hit.Position
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(hitPosition + Vector3.new(0, 3, 0))
+            warn("Teleported to: " .. tostring(hitPosition))
+        else
+            warn("Teleport failed: No character or HumanoidRootPart")
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.R then
+        rPressed = false
+        warn("R Key: Released")
+    end
+end)
+createButton("Toggle R+LeftClick TP", UDim2.new(0, 20, 0, 60), MainFrame, function()
+    tpEnabled = not tpEnabled
+    warn("R+LeftClick TP: " .. (tpEnabled and "Enabled" or "Disabled"))
+end)
+
+-- Fly Hack
+local flying = false
+local function fly()
+    local BodyVelocity = Instance.new("BodyVelocity")
+    BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    local rootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    BodyVelocity.Parent = rootPart
+    while flying and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
+        local moveDirection = Vector3.new(0, 0, 0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveDirection = moveDirection + Vector3.new(0, 50, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            moveDirection = moveDirection + Vector3.new(0, -50, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDirection = moveDirection + rootPart.CFrame.LookVector * 50
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDirection = moveDirection - rootPart.CFrame.LookVector * 50
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDirection = moveDirection - rootPart.CFrame.RightVector * 50
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDirection = moveDirection + rootPart.CFrame.RightVector * 50
+        end
+        BodyVelocity.Velocity = moveDirection
+        wait()
+    end
+    BodyVelocity:Destroy()
+end
+createButton("Toggle Fly", UDim2.new(0, 20, 0, 110), MainFrame, function()
+    flying = not flying
+    warn("Fly: " .. (flying and "Enabled" or "Disabled"))
+    if flying then
+        coroutine.wrap(fly)()
+    end
+end)
+
+-- ESP (Highlight Players)
+local espEnabled = false
+local highlights = {}
+local function toggleESP()
+    espEnabled = not espEnabled
+    warn("ESP: " .. (espEnabled and "Enabled" or "Disabled"))
+    if espEnabled then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                local highlight = Instance.new("Highlight")
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Parent = player.Character
+                highlight.Adornee = player.Character
+                highlights[player] = highlight
+            end
+        end
+        Players.PlayerAdded:Connect(function(player)
+            if espEnabled and player.Character then
+                local highlight = Instance.new("Highlight")
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.Parent = player.Character
+                highlight.Adornee = player.Character
+                highlights[player] = highlight
+            end
+        end)
+        Players.PlayerRemoving:Connect(function(player)
+            if highlights[player] then
+                highlights[player]:Destroy()
+                highlights[player] = nil
+            end
+        end)
+    else
+        for player, highlight in pairs(highlights) do
+            if highlight then
+                highlight:Destroy()
+            end
+        end
+        highlights = {}
+    end
+end
+createButton("Toggle ESP", UDim2.new(0, 20, 0, 160), MainFrame, toggleESP)
+
+-- Noclip
+local noclipEnabled = false
+local function noclip()
+    while noclipEnabled and LocalPlayer.Character do
+        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+        RunService.Stepped:Wait()
+    end
+    if LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+createButton("Toggle Noclip", UDim2.new(0, 20, 0, 210), MainFrame, function()
+    noclipEnabled = not noclipEnabled
+    warn("Noclip: " .. (noclipEnabled and "Enabled" or "Disabled"))
+    if noclipEnabled then
+        coroutine.wrap(noclip)()
+    end
+end)
+
+-- Infinite Block Spam
+local isSpamming = false
+createButton("Toggle Block Spam", UDim2.new(0, 20, 0, 260), MainFrame, function()
+    isSpamming = not isSpamming
+    warn("Block Spam: " .. (isSpamming and "Enabled" or "Disabled"))
+    if isSpamming then
+        warn("Attempting to overload server with infinite blocks... (This will fail)")
+        local success, err = pcall(function()
+            while isSpamming do
+                for i = 1, 100 do
+                    local part = Instance.new("Part")
+                    part.Size = Vector3.new(1, 1, 1)
+                    part.Position = Vector3.new(math.random(-1000, 1000), 100, math.random(-1000, 1000))
+                    part.Anchored = false
+                    part.Parent = workspace
+                    pcall(function()
+                        ReplicatedStorage:FireServer("CreateObject", part)
+                    end)
+                end
+                RunService.Heartbeat:Wait()
+            end
+        end)
+        if not success then
+            warn("Block spam failed: " .. err)
+            isSpamming = false
+        end
+    end
+end)
+
+-- Open Movement Hacks Window
+createButton("Open Movement Hacks", UDim2.new(0, 20, 0, 300), MainFrame, function()
+    MovementFrame.Visible = not MovementFrame.Visible
+    warn("Movement Hacks Window: " .. (MovementFrame.Visible and "Opened" or "Closed"))
+end)
+
+-- Speed Hack
+local speedEnabled = false
+local defaultSpeed = 16
+local function setSpeed(speedText)
+    local speed = tonumber(speedText)
+    if speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = speedEnabled and speed or defaultSpeed
+        warn("Speed set to: " .. (speedEnabled and speed or defaultSpeed))
+    else
+        warn("Invalid speed or no humanoid")
+    end
+end
+createTextBox("Enter Speed (e.g., 50)", UDim2.new(0, 20, 0, 60), MovementFrame, setSpeed)
+createButton("Toggle Speed Hack", UDim2.new(0, 20, 0, 110), MovementFrame, function()
+    speedEnabled = not speedEnabled
+    setSpeed(MovementFrame:FindFirstChildOfClass("TextBox").Text)
+    warn("Speed Hack: " .. (speedEnabled and "Enabled" or "Disabled"))
+end)
+
+-- Infinite Jumps
+local infJumpEnabled = false
+UserInputService.JumpRequest:Connect(function()
+    if infJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+createButton("Toggle Infinite Jumps", UDim2.new(0, 20, 0, 160), MovementFrame, function()
+    infJumpEnabled = not infJumpEnabled
+    warn("Infinite Jumps: " .. (infJumpEnabled and "Enabled" or "Disabled"))
+end)
+
+-- Jump Hack
+local jumpEnabled = false
+local defaultJumpPower = 50
+local function setJumpPower(powerText)
+    local power = tonumber(powerText)
+    if power and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = jumpEnabled and power or defaultJumpPower
+        warn("Jump Power set to: " .. (jumpEnabled and power or defaultJumpPower))
+    else
+        warn("Invalid jump power or no humanoid")
+    end
+end
+createTextBox("Enter Jump Power (e.g., 100)", UDim2.new(0, 20, 0, 200), MovementFrame, setJumpPower)
+createButton("Toggle Jump Hack", UDim2.new(0, 20, 0, 250), MovementFrame, function()
+    jumpEnabled = not jumpEnabled
+    setJumpPower(MovementFrame:FindFirstChildOfClass("TextBox", true).Text)
+    warn("Jump Hack: " .. (jumpEnabled and "Enabled" or "Disabled"))
+end)
+
+-- Debug startup
+warn("WindClient loaded. Press Right Ctrl to toggle GUI.")
